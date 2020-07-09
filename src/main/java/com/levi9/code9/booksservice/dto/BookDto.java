@@ -18,7 +18,7 @@ public class BookDto {
     private String title;
     private BigDecimal price;
     private Long quantityOnStock;
-    private boolean onSale;
+    private boolean onStock;
     private Long soldCopiesNumber;
 
     private AuthorDto author;
