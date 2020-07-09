@@ -1,5 +1,6 @@
 package com.levi9.code9.booksservice.service.impl;
 
+import com.levi9.code9.booksservice.dto.BookCopiesSoldDto;
 import com.levi9.code9.booksservice.dto.BookDto;
 import com.levi9.code9.booksservice.dto.BookSaveDto;
 import com.levi9.code9.booksservice.mapper.BookMapper;
@@ -16,9 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.awt.print.Book;
+import java.util.*;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -44,22 +44,20 @@ public class BookServiceImpl implements BookService {
     public BookDto save(BookSaveDto bookDtoToSave) {
         BookEntity bookEntityToSave = bookMapper.map(bookDtoToSave);
 
-//        BookEntity almostSavedBook = bookRepository.save(bookEntityToSave);
         BookEntity bookWithAuthor = this.addAuthor(bookEntityToSave, bookDtoToSave.getAuthorId());
-
+        BookEntity bookWithAuthorAndId = bookRepository.save(bookWithAuthor);
 
         bookDtoToSave.getGenresIds().forEach(genreId -> {
             GenreEntity genre = genreRepository.findById(genreId).get();
-            bookWithAuthor.addGenre(genre);
+            bookWithAuthorAndId.addGenre(genre);
         });
-
-        BookEntity savedBook = bookRepository.saveAndFlush(bookWithAuthor);
+        BookEntity savedBook = bookRepository.save(bookWithAuthorAndId);
         return bookMapper.mapToDto(savedBook);
     }
 
     @Override
     public List<BookDto> getAll() {
-        List<BookEntity> books = bookRepository.findAllByIsSellingIsTrue();
+        List<BookEntity> books = bookRepository.findAllByOnStockIsTrue();
         List<BookDto> bookDtos = new ArrayList<>(books.size());
         books.forEach(book -> bookDtos.add(bookMapper.mapToDto(book)));
         return bookDtos;
@@ -67,11 +65,8 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<BookDto> getBestSellers(Integer number) {
-        if(number == null){
-            number = new Integer(10);
-        }
         Pageable sortedByPiecesSold = PageRequest.of(0, number, Sort.by("soldCopiesNumber").descending());
-        List<BookEntity> bestSellers = bookRepository.findAllByIsSellingIsTrue(sortedByPiecesSold);
+        List<BookEntity> bestSellers = bookRepository.findAllByOnStockIsTrue(sortedByPiecesSold);
         List<BookDto> bestSellersDtos = new ArrayList<>(bestSellers.size());
         bestSellers.forEach(book -> bestSellersDtos.add(bookMapper.mapToDto(book)));
         return bestSellersDtos;
@@ -81,18 +76,17 @@ public class BookServiceImpl implements BookService {
     public List<BookDto> filterBooks(String title, String author) {
         List<BookEntity> filteredBooks = new LinkedList<>();
         if (title != null && author == null) {
-            filteredBooks = bookRepository.findByTitleStartingWithAndIsSellingIsTrue(title);
-        }
-        else {
+            filteredBooks = bookRepository.findByTitleStartingWithAndOnStockIsTrue(title);
+        } else {
             List<AuthorEntity> authors = authorRepository.findByFirstNameStartingWithOrLastNameStartingWith(author, author);
             List<BookEntity> books = new LinkedList<>();
             if (title == null) {
                 authors.forEach(a -> {
-                    books.addAll(bookRepository.findByAuthorAndIsSellingIsTrue(a));
+                    books.addAll(bookRepository.findByAuthorAndOnStockIsTrue(a));
                 });
             } else {
                 authors.forEach(a -> {
-                    books.addAll(bookRepository.findByAuthorAndTitleStartingWithAndIsSellingIsTrue(a, title));
+                    books.addAll(bookRepository.findByAuthorAndTitleStartingWithAndOnStockIsTrue(a, title));
                 });
             }
             filteredBooks.addAll(books);
@@ -103,33 +97,65 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    //TODO: if book is deleted, throws an error
+    //TODO: if book is already deleted, throw an error
     public BookDto delete(Long id) {
         BookEntity bookToDelete = bookRepository.findById(id).get();
-        bookToDelete.setSelling(false);
+        bookToDelete.setOnStock(false);
         BookEntity deletedBook = bookRepository.save(bookToDelete);
         return bookMapper.mapToDto(deletedBook);
     }
 
     @Override
-    public BookDto update(Long id, BookSaveDto bookToSaveDto) {
-        return null;
+    public BookDto update(Long id, BookSaveDto newBook) {
+        BookEntity bookToUpdate = bookRepository.findById(id).get();
+
+        AuthorEntity newAuthor = authorRepository.findById(newBook.getAuthorId()).get();
+        bookToUpdate.setAuthor(newAuthor);
+
+        bookToUpdate.setTitle(newBook.getTitle());
+        bookToUpdate.setPrice(newBook.getPrice());
+        bookToUpdate.setQuantityOnStock(newBook.getQuantityOnStock());
+
+        updateGenres(bookToUpdate, newBook);
+
+        BookEntity updatedBook = bookRepository.save(bookToUpdate);
+        return bookMapper.mapToDto(updatedBook);
+    }
+
+    private void updateGenres(BookEntity bookToUpdate, BookSaveDto newBook) {
+        Iterator<GenreEntity> iterator = bookToUpdate.getGenres().iterator();
+        while(iterator.hasNext()){
+            GenreEntity genreEntity = iterator.next();
+            if (newBook.getGenresIds().contains(genreEntity.getId()) == false)
+                bookToUpdate.removeGenre(genreEntity);
+        }
+        newBook.getGenresIds().forEach(genreId->{
+            GenreEntity newGenre = genreRepository.findById(genreId).get();
+            if(bookToUpdate.getGenres().contains(newGenre) == false){
+                bookToUpdate.addGenre(newGenre);
+            }
+        });
     }
 
     @Override
-    public BookDto updateCopiesSaled(Long id, Long copiesSold) {
-        return null;
+    public BookDto updateCopiesSold(Long id, BookCopiesSoldDto copiesSold) {
+        final BookEntity book = bookRepository.findById(id).get();
+        Long updatedCopiesSoldNumber = book.getSoldCopiesNumber()+copiesSold.getCopiesSold();
+        book.setSoldCopiesNumber(updatedCopiesSoldNumber);
+        final BookEntity savedBook = bookRepository.save(book);
+        return bookMapper.mapToDto(savedBook);
     }
 
     @Override
     public BookDto getById(Long id) {
-        return null;
+        final BookEntity book = bookRepository.findById(id).get();
+        return bookMapper.mapToDto(book);
     }
 
     @Override
     public List<BookDto> filterByGenre(Long genreId) {
         GenreEntity genre = genreRepository.findById(genreId).get();
-        List<BookEntity> books = bookRepository.findByGenresContainsAndIsSellingIsTrue(genre);
+        List<BookEntity> books = bookRepository.findByGenresContainsAndOnStockIsTrue(genre);
         List<BookDto> bookDtos = new ArrayList<>(books.size());
         books.forEach(book -> bookDtos.add(bookMapper.mapToDto(book)));
         return bookDtos;
@@ -138,6 +164,6 @@ public class BookServiceImpl implements BookService {
     private BookEntity addAuthor(BookEntity book, Long authorId) {
         AuthorEntity authorEntity = authorRepository.findById(authorId).get();
         book.setAuthor(authorEntity);
-        return bookRepository.save(book);
+        return book;
     }
 }

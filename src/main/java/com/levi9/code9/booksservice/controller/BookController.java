@@ -2,6 +2,7 @@ package com.levi9.code9.booksservice.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.levi9.code9.booksservice.dto.BookCopiesSoldDto;
 import com.levi9.code9.booksservice.dto.BookDto;
 import com.levi9.code9.booksservice.dto.BookSaveDto;
 import com.levi9.code9.booksservice.service.BookService;
@@ -83,8 +84,8 @@ public class BookController {
     }
 
     @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookDto> updateCopiesSold(@PathVariable final Long id, @RequestBody final Long copiesSold) {
-        BookDto updatedBook = bookService.updateCopiesSaled(id, copiesSold);
+    public ResponseEntity<BookDto> updateCopiesSold(@PathVariable final Long id, @RequestBody final BookCopiesSoldDto copiesSold) {
+        BookDto updatedBook = bookService.updateCopiesSold(id, copiesSold);
         return new ResponseEntity<>(updatedBook, HttpStatus.OK);
     }
 }

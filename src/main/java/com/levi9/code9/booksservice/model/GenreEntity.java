@@ -17,10 +17,9 @@ public class GenreEntity {
     private Long id;
     private String name;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "genres", cascade = {
-            CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH
-    })
-//    @JoinTable(name="Genre_Books", joinColumns = {@JoinColumn(name="genre_id")},
-//    inverseJoinColumns = {@JoinColumn(name="book_id")})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "genres")
     private Set<BookEntity> books;
+
+//    @JoinTable(name="Genre_Books", joinColumns = {@JoinColumn(name="genre_id", referencedColumnName = "id")},
+//    inverseJoinColumns = {@JoinColumn(name="book_id", referencedColumnName = "id")})
 }

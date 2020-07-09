@@ -1,6 +1,7 @@
 package com.levi9.code9.booksservice.service;
 
 
+import com.levi9.code9.booksservice.dto.BookCopiesSoldDto;
 import com.levi9.code9.booksservice.dto.BookDto;
 import com.levi9.code9.booksservice.dto.BookSaveDto;
 
@@ -20,7 +21,7 @@ public interface BookService {
 
     BookDto update(Long id, BookSaveDto bookToSaveDto);
 
-    BookDto updateCopiesSaled(Long id, Long copiesSold);
+    BookDto updateCopiesSold(Long id, BookCopiesSoldDto copiesSold);
 
     BookDto getById(Long id);
 

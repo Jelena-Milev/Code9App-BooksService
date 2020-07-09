@@ -10,15 +10,15 @@ import java.util.List;
 
 public interface BookRepository extends JpaRepository<BookEntity, Long> {
 
-    List<BookEntity> findAllByIsSellingIsTrue();
+    List<BookEntity> findAllByOnStockIsTrue();
     
-    List<BookEntity> findAllByIsSellingIsTrue(Pageable pageable);
+    List<BookEntity> findAllByOnStockIsTrue(Pageable pageable);
 
-    List<BookEntity> findByTitleStartingWithAndIsSellingIsTrue(String title);
+    List<BookEntity> findByTitleStartingWithAndOnStockIsTrue(String title);
 
-    List<BookEntity> findByAuthorAndIsSellingIsTrue(AuthorEntity author);
+    List<BookEntity> findByAuthorAndOnStockIsTrue(AuthorEntity author);
 
-    List<BookEntity> findByAuthorAndTitleStartingWithAndIsSellingIsTrue(AuthorEntity author, String title);
+    List<BookEntity> findByAuthorAndTitleStartingWithAndOnStockIsTrue(AuthorEntity author, String title);
 
-    List<BookEntity> findByGenresContainsAndIsSellingIsTrue(GenreEntity genre);
+    List<BookEntity> findByGenresContainsAndOnStockIsTrue(GenreEntity genre);
 }
