@@ -51,7 +51,7 @@ public class BookServiceImpl implements BookService {
             GenreEntity genre = genreRepository.findById(genreId).get();
             bookWithAuthorAndId.addGenre(genre);
         });
-        BookEntity savedBook = bookRepository.save(bookWithAuthorAndId);
+        BookEntity savedBook = bookRepository.saveAndFlush(bookWithAuthorAndId);
         return bookMapper.mapToDto(savedBook);
     }
 
@@ -116,7 +116,7 @@ public class BookServiceImpl implements BookService {
         bookToUpdate.setPrice(newBook.getPrice());
         bookToUpdate.setQuantityOnStock(newBook.getQuantityOnStock());
 
-        updateGenres(bookToUpdate, newBook);
+//        updateGenres(bookToUpdate, newBook);
 
         BookEntity updatedBook = bookRepository.save(bookToUpdate);
         return bookMapper.mapToDto(updatedBook);
