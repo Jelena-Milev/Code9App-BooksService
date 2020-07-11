@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Set;
 
 @NoArgsConstructor
@@ -26,9 +27,18 @@ public class AuthorEntity {
     @Column(columnDefinition = "DATE")
     private LocalDate dateOfBirth;
 
-//    @OneToMany(
-//            mappedBy = "author",
-//            fetch = FetchType.LAZY
-//    )
-//    private Set<BookEntity> books;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || !(o instanceof AuthorEntity)) return false;
+        AuthorEntity that = (AuthorEntity) o;
+        return firstName.equals(that.firstName) &&
+                lastName.equals(that.lastName) &&
+                dateOfBirth.equals(that.dateOfBirth);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(firstName, lastName, dateOfBirth);
+    }
 }

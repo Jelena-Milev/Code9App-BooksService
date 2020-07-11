@@ -4,8 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,25 +31,52 @@ public class BookEntity {
     @JoinColumn(name = "author_id", referencedColumnName = "id")
     private AuthorEntity author;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {
-            CascadeType.PERSIST, CascadeType.MERGE
-    })
-    @JoinTable(name = "Genre_Books", joinColumns = {@JoinColumn(name = "book_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "genre_id", referencedColumnName = "id")})
-    private Set<GenreEntity> genres;
+    @OneToMany(
+            mappedBy = "book",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<BookGenre> genres;
 
     public void addGenre(GenreEntity genre) {
-        if(this.genres == null){
-            this.genres = new HashSet<>();
+        if(genres == null){
+            genres = new ArrayList<>();
         }
-        this.genres.add(genre);
-        genre.getBooks().add(this);
+        BookGenre bookGenre = new BookGenre(this, genre);
+        genres.add(bookGenre);
+        genre.getBooks().add(bookGenre);
     }
 
     public void removeGenre(GenreEntity genre) {
-        if(this.genres == null)
-            return;
-        this.genres.remove(genre);
-        genre.getBooks().remove(this);
+        for (Iterator<BookGenre> iterator = genres.iterator();
+             iterator.hasNext(); ) {
+            BookGenre bookGenre = iterator.next();
+
+            if (bookGenre.getBook().equals(this) &&
+                    bookGenre.getGenre().equals(genre)) {
+                iterator.remove();
+                bookGenre.getGenre().getBooks().remove(bookGenre);
+                bookGenre.setBook(null);
+                bookGenre.setGenre(null);
+            }
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || !(o instanceof BookEntity)) return false;
+        BookEntity that = (BookEntity) o;
+        return onStock == that.onStock &&
+                title.equals(that.title) &&
+                price.equals(that.price) &&
+                quantityOnStock.equals(that.quantityOnStock) &&
+                soldCopiesNumber.equals(that.soldCopiesNumber) &&
+                author.equals(that.author);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(title, price, quantityOnStock, onStock, soldCopiesNumber, author);
     }
 }

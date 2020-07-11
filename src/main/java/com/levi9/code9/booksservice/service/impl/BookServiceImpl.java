@@ -16,8 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.print.Book;
 import java.util.*;
 
 @Service
@@ -41,18 +41,34 @@ public class BookServiceImpl implements BookService {
 
 
     @Override
+    @Transactional
     public BookDto save(BookSaveDto bookDtoToSave) {
+        final BookEntity bookWithAuthorAndId = saveBook(bookDtoToSave);
+        final Long bookId = bookWithAuthorAndId.getId();
+        for (Long genreId : bookDtoToSave.getGenresIds()) {
+            bookRepository.insertBookGenre(bookId, genreId);
+        }
+        final BookEntity savedBook = bookRepository.findById(bookId).get();
+//        final BookEntity savedBook = updateBookWithGenres(bookWithAuthorAndId, bookDtoToSave);
+        return bookMapper.mapToDto(savedBook);
+    }
+
+    private BookEntity saveBook(BookSaveDto bookDtoToSave){
         BookEntity bookEntityToSave = bookMapper.map(bookDtoToSave);
 
         BookEntity bookWithAuthor = this.addAuthor(bookEntityToSave, bookDtoToSave.getAuthorId());
         BookEntity bookWithAuthorAndId = bookRepository.save(bookWithAuthor);
+        return bookWithAuthorAndId;
+    }
 
-        bookDtoToSave.getGenresIds().forEach(genreId -> {
+    private BookEntity updateBookWithGenres(BookEntity bookEntity, BookSaveDto bookDtoToSave){
+//        BookEntity bookEntity = bookRepository.findById(id).get();
+        for (Long genreId : bookDtoToSave.getGenresIds()) {
             GenreEntity genre = genreRepository.findById(genreId).get();
-            bookWithAuthorAndId.addGenre(genre);
-        });
-        BookEntity savedBook = bookRepository.saveAndFlush(bookWithAuthorAndId);
-        return bookMapper.mapToDto(savedBook);
+            bookEntity.addGenre(genre);
+        }
+        BookEntity savedBook = bookRepository.saveAndFlush(bookEntity);
+        return savedBook;
     }
 
     @Override
@@ -122,20 +138,14 @@ public class BookServiceImpl implements BookService {
         return bookMapper.mapToDto(updatedBook);
     }
 
-    private void updateGenres(BookEntity bookToUpdate, BookSaveDto newBook) {
-        Iterator<GenreEntity> iterator = bookToUpdate.getGenres().iterator();
-        while(iterator.hasNext()){
-            GenreEntity genreEntity = iterator.next();
-            if (newBook.getGenresIds().contains(genreEntity.getId()) == false)
-                bookToUpdate.removeGenre(genreEntity);
-        }
-        newBook.getGenresIds().forEach(genreId->{
-            GenreEntity newGenre = genreRepository.findById(genreId).get();
-            if(bookToUpdate.getGenres().contains(newGenre) == false){
-                bookToUpdate.addGenre(newGenre);
-            }
-        });
-    }
+//    private void updateGenres(BookEntity bookToUpdate, BookSaveDto newBook) {
+//        Set<GenreEntity> newGenres = new HashSet<>();
+//        newBook.getGenresIds().forEach(genreId->{
+//            GenreEntity newGenre = genreRepository.findById(genreId).get();
+//            newGenres.add(newGenre);
+//        });
+//        bookToUpdate.setGenres(newGenres);
+//    }
 
     @Override
     public BookDto updateCopiesSold(Long id, BookCopiesSoldDto copiesSold) {
