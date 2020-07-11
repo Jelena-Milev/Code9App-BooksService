@@ -48,8 +48,7 @@ public class BookGenre implements Serializable {
         if (this == o) return true;
         if (o == null || !(o instanceof BookGenre)) return false;
         BookGenre bookGenre = (BookGenre) o;
-        return id.equals(bookGenre.id) &&
-                Objects.equals(book, bookGenre.book) &&
+        return  Objects.equals(book, bookGenre.book) &&
                 Objects.equals(genre, bookGenre.genre);
     }
 

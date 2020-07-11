@@ -128,20 +128,28 @@ public class BookServiceImpl implements BookService {
         bookToUpdate.setPrice(newBook.getPrice());
         bookToUpdate.setQuantityOnStock(newBook.getQuantityOnStock());
 
-//        updateGenres(bookToUpdate, newBook);
+        bookToUpdate = bookRepository.save(bookToUpdate);
 
-        BookEntity updatedBook = bookRepository.save(bookToUpdate);
+        List<Long> newGenresIds = newBook.getGenresIds();
+        for (BookGenre bookGenre : bookToUpdate.getGenres()) {
+            final GenreEntity existingGenre = bookGenre.getGenre();
+            if(!newGenresIds.contains(existingGenre.getId())){
+                bookToUpdate.removeGenre(existingGenre);
+                bookGenreRepository.delete(bookGenre);
+            }
+        }
+        for (Long newGenreId : newGenresIds) {
+            final GenreEntity newGenre = genreRepository.findById(newGenreId).get();
+            final BookGenre newBookGenre = new BookGenre(bookToUpdate, newGenre);
+            if(!bookToUpdate.getGenres().contains(newBookGenre)){
+                bookToUpdate.addBookGenre(newBookGenre);
+                bookGenreRepository.save(newBookGenre);
+            }
+        }
+
+        BookEntity updatedBook = bookRepository.findById(id).get();
         return bookMapper.mapToDto(updatedBook);
     }
-
-//    private void updateGenres(BookEntity bookToUpdate, BookSaveDto newBook) {
-//        Set<GenreEntity> newGenres = new HashSet<>();
-//        newBook.getGenresIds().forEach(genreId->{
-//            GenreEntity newGenre = genreRepository.findById(genreId).get();
-//            newGenres.add(newGenre);
-//        });
-//        bookToUpdate.setGenres(newGenres);
-//    }
 
     @Override
     public BookDto updateCopiesSold(Long id, BookCopiesSoldDto copiesSold) {
