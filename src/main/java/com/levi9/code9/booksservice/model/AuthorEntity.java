@@ -14,7 +14,7 @@ import java.util.Set;
 @Builder
 @Entity(name = "Author")
 @Table(name="author")
-public class AuthorEntity implements Persistable<Long> {
+public class AuthorEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "author_id_seq")
@@ -41,8 +41,4 @@ public class AuthorEntity implements Persistable<Long> {
         return Objects.hash(firstName, lastName, dateOfBirth);
     }
 
-    @Override
-    public boolean isNew() {
-        return this.id == null;
-    }
 }

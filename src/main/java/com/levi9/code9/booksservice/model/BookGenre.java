@@ -21,18 +21,11 @@ public class BookGenre implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    //    @ManyToOne(fetch = FetchType.LAZY, cascade = {
-//            CascadeType.PERSIST, CascadeType.MERGE
-//    })
     @ManyToOne(fetch = FetchType.LAZY, cascade = {
             CascadeType.PERSIST, CascadeType.MERGE
     })
     @JoinColumn(name = "book_id", referencedColumnName = "id")
     private BookEntity book;
-
-//    @ManyToOne(fetch = FetchType.LAZY, cascade = {
-//            CascadeType.PERSIST, CascadeType.MERGE
-//    })
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "genre_id", referencedColumnName = "id")

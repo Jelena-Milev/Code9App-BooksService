@@ -23,11 +23,6 @@ public class GenreEntity {
     private Long id;
     private String name;
 
-//    @OneToMany(mappedBy = "genre",
-//    cascade = CascadeType.ALL,
-//    orphanRemoval = true)
-//    private List<BookGenre> books = new ArrayList<>();
-
     public GenreEntity(String name) {
         this.name = name;
     }
@@ -44,11 +39,4 @@ public class GenreEntity {
     public int hashCode() {
         return Objects.hash(name);
     }
-
-//    public void addBookGenre(BookGenre bookGenre) {
-//        if(books == null){
-//            books = new ArrayList<>();
-//        }
-//        books.add(bookGenre);
-//    }
 }
