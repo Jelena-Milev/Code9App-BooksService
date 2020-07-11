@@ -11,13 +11,14 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Setter
+@Builder
 @Entity(name = "Author")
 @Table(name="author")
 public class AuthorEntity implements Persistable<Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "author_id_seq")
+    @SequenceGenerator(name = "author_id_generator", sequenceName = "author_id_seq", initialValue = 1)
     private Long id;
     private String firstName;
     private String lastName;

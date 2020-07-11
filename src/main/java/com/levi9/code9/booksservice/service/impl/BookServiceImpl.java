@@ -44,7 +44,12 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookDto save(BookSaveDto bookDtoToSave) {
         final BookEntity bookWithAuthorAndId = addAuthorAndSave(bookDtoToSave);
-        updateBookWithGenres(bookWithAuthorAndId, bookDtoToSave.getGenresIds());
+        for (Long genreId : bookDtoToSave.getGenresIds()) {
+            GenreEntity genre = genreRepository.findById(genreId).get();
+            BookGenre bookGenre = new BookGenre(bookWithAuthorAndId, genre);
+            bookWithAuthorAndId.addBookGenre(bookGenre);
+            bookGenreRepository.save(bookGenre);
+        }
         BookEntity savedBook = bookRepository.findById(bookWithAuthorAndId.getId()).get();
         return bookMapper.mapToDto(savedBook);
     }
@@ -60,18 +65,6 @@ public class BookServiceImpl implements BookService {
         AuthorEntity authorEntity = authorRepository.findById(authorId).get();
         book.setAuthor(authorEntity);
         return book;
-    }
-
-    void updateBookWithGenres(BookEntity book, List<Long> genresIds){
-        Set<BookGenre> bookGenreSet = new HashSet<>();
-        for (Long genreId : genresIds) {
-            GenreEntity genre = genreRepository.findById(genreId).get();
-            BookGenre bookGenre = new BookGenre(book, genre);
-            book.addBookGenre(bookGenre);
-            bookGenreSet.add(bookGenre);
-        }
-        bookGenreRepository.saveAll(bookGenreSet);
-        return;
     }
 
     @Override
@@ -168,7 +161,9 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<BookDto> filterByGenre(Long genreId) {
         GenreEntity genre = genreRepository.findById(genreId).get();
-        List<BookEntity> books = bookRepository.findByGenresContainsAndOnStockIsTrue(genre);
+        final List<BookGenre> bookGenres = bookGenreRepository.findByGenreAndBookOnStockIsTrue(genre);
+        List<BookEntity> books = new ArrayList<>(bookGenres.size());
+        bookGenres.forEach(bookGenre -> books.add(bookGenre.getBook()));
         List<BookDto> bookDtos = new ArrayList<>(books.size());
         books.forEach(book -> bookDtos.add(bookMapper.mapToDto(book)));
         return bookDtos;

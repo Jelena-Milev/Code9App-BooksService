@@ -39,7 +39,6 @@ public class AuthorServiceImpl implements AuthorService {
         List<AuthorEntity> authorEntities = new ArrayList<>();
         for (AuthorDto authorDto : authorDtos) {
             AuthorEntity author = authorMapper.map(authorDto);
-            author.setId(null);
             authorEntities.add(author);
         }
         List<AuthorDto> savedAuthorsDto = new ArrayList<>(authorEntities.size());
