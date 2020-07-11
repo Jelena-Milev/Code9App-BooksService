@@ -33,34 +33,40 @@ public class BookEntity {
 
     @OneToMany(
             mappedBy = "book",
-            cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<BookGenre> genres;
 
-    public void addGenre(GenreEntity genre) {
+//    public void addGenre(GenreEntity genre) {
+//        if(genres == null){
+//            genres = new ArrayList<>();
+//        }
+//        BookGenre bookGenre = new BookGenre(this, genre);
+//        genres.add(bookGenre);
+//        genre.getBooks().add(bookGenre);
+//    }
+
+    public void addBookGenre(BookGenre bookGenre) {
         if(genres == null){
             genres = new ArrayList<>();
         }
-        BookGenre bookGenre = new BookGenre(this, genre);
         genres.add(bookGenre);
-        genre.getBooks().add(bookGenre);
     }
 
-    public void removeGenre(GenreEntity genre) {
-        for (Iterator<BookGenre> iterator = genres.iterator();
-             iterator.hasNext(); ) {
-            BookGenre bookGenre = iterator.next();
-
-            if (bookGenre.getBook().equals(this) &&
-                    bookGenre.getGenre().equals(genre)) {
-                iterator.remove();
-                bookGenre.getGenre().getBooks().remove(bookGenre);
-                bookGenre.setBook(null);
-                bookGenre.setGenre(null);
-            }
-        }
-    }
+//    public void removeGenre(GenreEntity genre) {
+//        for (Iterator<BookGenre> iterator = genres.iterator();
+//             iterator.hasNext(); ) {
+//            BookGenre bookGenre = iterator.next();
+//
+//            if (bookGenre.getBook().equals(this) &&
+//                    bookGenre.getGenre().equals(genre)) {
+//                iterator.remove();
+//                bookGenre.getGenre().getBooks().remove(bookGenre);
+//                bookGenre.setBook(null);
+//                bookGenre.setGenre(null);
+//            }
+//        }
+//    }
 
     @Override
     public boolean equals(Object o) {

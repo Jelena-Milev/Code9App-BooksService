@@ -1,9 +1,7 @@
 package com.levi9.code9.booksservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -13,13 +11,13 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Builder
+@Setter
 @Entity(name = "Author")
 @Table(name="author")
-public class AuthorEntity {
+public class AuthorEntity implements Persistable<Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     private String firstName;
     private String lastName;
@@ -40,5 +38,10 @@ public class AuthorEntity {
     @Override
     public int hashCode() {
         return Objects.hash(firstName, lastName, dateOfBirth);
+    }
+
+    @Override
+    public boolean isNew() {
+        return this.id == null;
     }
 }

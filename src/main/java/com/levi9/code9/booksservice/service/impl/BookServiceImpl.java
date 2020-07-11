@@ -6,8 +6,10 @@ import com.levi9.code9.booksservice.dto.BookSaveDto;
 import com.levi9.code9.booksservice.mapper.BookMapper;
 import com.levi9.code9.booksservice.model.AuthorEntity;
 import com.levi9.code9.booksservice.model.BookEntity;
+import com.levi9.code9.booksservice.model.BookGenre;
 import com.levi9.code9.booksservice.model.GenreEntity;
 import com.levi9.code9.booksservice.repository.AuthorRepository;
+import com.levi9.code9.booksservice.repository.BookGenreRepository;
 import com.levi9.code9.booksservice.repository.BookRepository;
 import com.levi9.code9.booksservice.repository.GenreRepository;
 import com.levi9.code9.booksservice.service.BookService;
@@ -16,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -26,49 +27,51 @@ public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
 
-    @Autowired
     private final GenreRepository genreRepository;
-    @Autowired
     private final AuthorRepository authorRepository;
+    private final BookGenreRepository bookGenreRepository;
 
     @Autowired
-    public BookServiceImpl(BookRepository bookRepository, BookMapper bookMapper, GenreRepository genreRepository, AuthorRepository authorRepository) {
+    public BookServiceImpl(BookRepository bookRepository, BookMapper bookMapper, GenreRepository genreRepository, AuthorRepository authorRepository, BookGenreRepository bookGenreRepository) {
         this.bookRepository = bookRepository;
         this.bookMapper = bookMapper;
         this.genreRepository = genreRepository;
         this.authorRepository = authorRepository;
+        this.bookGenreRepository = bookGenreRepository;
     }
 
 
     @Override
-    @Transactional
     public BookDto save(BookSaveDto bookDtoToSave) {
-        final BookEntity bookWithAuthorAndId = saveBook(bookDtoToSave);
-        final Long bookId = bookWithAuthorAndId.getId();
-        for (Long genreId : bookDtoToSave.getGenresIds()) {
-            bookRepository.insertBookGenre(bookId, genreId);
-        }
-        final BookEntity savedBook = bookRepository.findById(bookId).get();
-//        final BookEntity savedBook = updateBookWithGenres(bookWithAuthorAndId, bookDtoToSave);
+        final BookEntity bookWithAuthorAndId = addAuthorAndSave(bookDtoToSave);
+        updateBookWithGenres(bookWithAuthorAndId, bookDtoToSave.getGenresIds());
+        BookEntity savedBook = bookRepository.findById(bookWithAuthorAndId.getId()).get();
         return bookMapper.mapToDto(savedBook);
     }
 
-    private BookEntity saveBook(BookSaveDto bookDtoToSave){
+    private BookEntity addAuthorAndSave(BookSaveDto bookDtoToSave) {
         BookEntity bookEntityToSave = bookMapper.map(bookDtoToSave);
 
-        BookEntity bookWithAuthor = this.addAuthor(bookEntityToSave, bookDtoToSave.getAuthorId());
-        BookEntity bookWithAuthorAndId = bookRepository.save(bookWithAuthor);
-        return bookWithAuthorAndId;
+        final BookEntity bookWithAuthor = addAuthor(bookEntityToSave, bookDtoToSave.getAuthorId());
+        return bookRepository.save(bookWithAuthor);
     }
 
-    private BookEntity updateBookWithGenres(BookEntity bookEntity, BookSaveDto bookDtoToSave){
-//        BookEntity bookEntity = bookRepository.findById(id).get();
-        for (Long genreId : bookDtoToSave.getGenresIds()) {
+    private BookEntity addAuthor(BookEntity book, Long authorId) {
+        AuthorEntity authorEntity = authorRepository.findById(authorId).get();
+        book.setAuthor(authorEntity);
+        return book;
+    }
+
+    void updateBookWithGenres(BookEntity book, List<Long> genresIds){
+        Set<BookGenre> bookGenreSet = new HashSet<>();
+        for (Long genreId : genresIds) {
             GenreEntity genre = genreRepository.findById(genreId).get();
-            bookEntity.addGenre(genre);
+            BookGenre bookGenre = new BookGenre(book, genre);
+            book.addBookGenre(bookGenre);
+            bookGenreSet.add(bookGenre);
         }
-        BookEntity savedBook = bookRepository.saveAndFlush(bookEntity);
-        return savedBook;
+        bookGenreRepository.saveAll(bookGenreSet);
+        return;
     }
 
     @Override
@@ -169,11 +172,5 @@ public class BookServiceImpl implements BookService {
         List<BookDto> bookDtos = new ArrayList<>(books.size());
         books.forEach(book -> bookDtos.add(bookMapper.mapToDto(book)));
         return bookDtos;
-    }
-
-    private BookEntity addAuthor(BookEntity book, Long authorId) {
-        AuthorEntity authorEntity = authorRepository.findById(authorId).get();
-        book.setAuthor(authorEntity);
-        return book;
     }
 }

@@ -23,16 +23,10 @@ public class GenreEntity {
     private Long id;
     private String name;
 
-    @OneToMany(mappedBy = "genre",
-    cascade = CascadeType.ALL,
-    orphanRemoval = true)
-    private List<BookGenre> books = new ArrayList<>();
-//    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "genres")
-//    private Set<BookEntity> books;
-
-//    @JoinTable(name="Genre_Books", joinColumns = {@JoinColumn(name="genre_id", referencedColumnName = "id")},
-//    inverseJoinColumns = {@JoinColumn(name="book_id", referencedColumnName = "id")})
-
+//    @OneToMany(mappedBy = "genre",
+//    cascade = CascadeType.ALL,
+//    orphanRemoval = true)
+//    private List<BookGenre> books = new ArrayList<>();
 
     public GenreEntity(String name) {
         this.name = name;
@@ -50,4 +44,11 @@ public class GenreEntity {
     public int hashCode() {
         return Objects.hash(name);
     }
+
+//    public void addBookGenre(BookGenre bookGenre) {
+//        if(books == null){
+//            books = new ArrayList<>();
+//        }
+//        books.add(bookGenre);
+//    }
 }

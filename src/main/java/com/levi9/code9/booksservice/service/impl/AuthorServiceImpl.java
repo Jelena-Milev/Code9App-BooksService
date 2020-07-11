@@ -10,7 +10,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class AuthorServiceImpl implements AuthorService {
@@ -30,6 +32,27 @@ public class AuthorServiceImpl implements AuthorService {
         final AuthorEntity savedAuthor = authorRepository.save(authorToSave);
         final AuthorDto savedAuthorDto = authorMapper.mapToDto(savedAuthor);
         return savedAuthorDto;
+    }
+
+    @Override
+    public List<AuthorDto> saveAll(List<AuthorDto> authorDtos) {
+        List<AuthorEntity> authorEntities = new ArrayList<>();
+        for (AuthorDto authorDto : authorDtos) {
+            AuthorEntity author = authorMapper.map(authorDto);
+            author.setId(null);
+            authorEntities.add(author);
+        }
+        List<AuthorDto> savedAuthorsDto = new ArrayList<>(authorEntities.size());
+
+        for (AuthorEntity authorEntity : authorEntities) {
+            AuthorEntity savedAuthor = authorRepository.save(authorEntity);
+            savedAuthorsDto.add(authorMapper.mapToDto(savedAuthor));
+        }
+//        List<AuthorEntity> savedAuthors = authorRepository.saveAll(authorEntities);
+//        for (AuthorEntity savedAuthor : savedAuthors) {
+//
+//        }
+        return savedAuthorsDto;
     }
 
     @Override

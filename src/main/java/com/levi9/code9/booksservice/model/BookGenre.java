@@ -15,16 +15,19 @@ import java.util.Objects;
 @Setter
 @Entity(name = "BookGenre")
 @Table(name = "book_genre")
-public class BookGenre {
+public class BookGenre implements Serializable {
 
-    @EmbeddedId
-    private BookGenreId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     //    @ManyToOne(fetch = FetchType.LAZY, cascade = {
 //            CascadeType.PERSIST, CascadeType.MERGE
 //    })
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("bookId")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    })
+    @JoinColumn(name = "book_id", referencedColumnName = "id")
     private BookEntity book;
 
 //    @ManyToOne(fetch = FetchType.LAZY, cascade = {
@@ -32,13 +35,12 @@ public class BookGenre {
 //    })
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("genreId")
+    @JoinColumn(name = "genre_id", referencedColumnName = "id")
     private GenreEntity genre;
 
     public BookGenre(BookEntity book, GenreEntity genre) {
         this.book = book;
         this.genre = genre;
-        this.id = new BookGenreId(book.getId(), genre.getId());
     }
 
     @Override
@@ -46,13 +48,14 @@ public class BookGenre {
         if (this == o) return true;
         if (o == null || !(o instanceof BookGenre)) return false;
         BookGenre bookGenre = (BookGenre) o;
-        return book.equals(bookGenre.book) &&
-                genre.equals(bookGenre.genre);
+        return id.equals(bookGenre.id) &&
+                Objects.equals(book, bookGenre.book) &&
+                Objects.equals(genre, bookGenre.genre);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(book, genre);
+        return Objects.hash(id, book, genre);
     }
 
     @Override
