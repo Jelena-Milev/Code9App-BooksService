@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -28,6 +29,16 @@ public class BookController {
     public ResponseEntity<List<BookDto>> getAll() {
         List<BookDto> bookDtos = bookService.getAll();
         return new ResponseEntity<>(bookDtos, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/bulk", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<BookDto>> getByIds(@RequestBody final List<Long> ids) {
+        List<BookDto> books = new ArrayList<>(ids.size());
+        ids.forEach(id -> {
+            final BookDto bookDto = bookService.getById(id);
+            books.add(bookDto);
+        });
+        return new ResponseEntity<>(books, HttpStatus.OK);
     }
 
     @GetMapping(path = "/{id}", produces = APPLICATION_JSON_VALUE)
@@ -83,9 +94,9 @@ public class BookController {
         return new ResponseEntity<>(updatedBook, HttpStatus.OK);
     }
 
-    @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookDto> updateCopiesSold(@PathVariable final Long id, @RequestBody final BookCopiesSoldDto copiesSold) {
-        BookDto updatedBook = bookService.updateCopiesSold(id, copiesSold);
-        return new ResponseEntity<>(updatedBook, HttpStatus.OK);
+    @PatchMapping(path = "/bulk", consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<BookDto>> updateBooksSold(@RequestBody final List<BookCopiesSoldDto> copiesSold) {
+        List<BookDto> updatedBooks = bookService.updateCopiesSold(copiesSold);
+        return new ResponseEntity<>(updatedBooks, HttpStatus.OK);
     }
 }

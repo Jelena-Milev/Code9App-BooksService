@@ -21,9 +21,9 @@ public interface BookService {
 
     BookDto update(Long id, BookSaveDto bookToSaveDto);
 
-    BookDto updateCopiesSold(Long id, BookCopiesSoldDto copiesSold);
-
     BookDto getById(Long id);
 
     List<BookDto> filterByGenre(Long genreId);
+
+    List<BookDto> updateCopiesSold(List<BookCopiesSoldDto> copiesSold);
 }

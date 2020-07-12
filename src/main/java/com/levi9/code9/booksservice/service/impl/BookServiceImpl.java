@@ -152,15 +152,6 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookDto updateCopiesSold(Long id, BookCopiesSoldDto copiesSold) {
-        final BookEntity book = bookRepository.findById(id).get();
-        Long updatedCopiesSoldNumber = book.getSoldCopiesNumber()+copiesSold.getCopiesSold();
-        book.setSoldCopiesNumber(updatedCopiesSoldNumber);
-        final BookEntity savedBook = bookRepository.save(book);
-        return bookMapper.mapToDto(savedBook);
-    }
-
-    @Override
     public BookDto getById(Long id) {
         final BookEntity book = bookRepository.findById(id).get();
         return bookMapper.mapToDto(book);
@@ -175,5 +166,22 @@ public class BookServiceImpl implements BookService {
         List<BookDto> bookDtos = new ArrayList<>(books.size());
         books.forEach(book -> bookDtos.add(bookMapper.mapToDto(book)));
         return bookDtos;
+    }
+
+    @Override
+    public List<BookDto> updateCopiesSold(List<BookCopiesSoldDto> copiesSold) {
+        List<BookEntity> updatedBooks = new ArrayList<>(copiesSold.size());
+        copiesSold.forEach(bookSold -> {
+            final BookEntity book = bookRepository.findById(bookSold.getBookId()).get();
+            final Long updatedCopiesSoldNumber = book.getSoldCopiesNumber()+bookSold.getCopiesSold();
+            book.setSoldCopiesNumber(updatedCopiesSoldNumber);
+            final Long updatedCopiesOnStock = book.getQuantityOnStock() - bookSold.getCopiesSold();
+            book.setQuantityOnStock(updatedCopiesOnStock);
+            final BookEntity savedBook = bookRepository.save(book);
+            updatedBooks.add(savedBook);
+        });
+        List<BookDto> updatedBooksDtos = new ArrayList<>(updatedBooks.size());
+        updatedBooks.forEach(book -> updatedBooksDtos.add(bookMapper.mapToDto(book)));
+        return updatedBooksDtos;
     }
 }
