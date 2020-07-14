@@ -1,9 +1,9 @@
 package com.levi9.code9.booksservice.service;
 
 
-import com.levi9.code9.booksservice.dto.BookCopiesSoldDto;
 import com.levi9.code9.booksservice.dto.BookDto;
 import com.levi9.code9.booksservice.dto.BookSaveDto;
+import com.levi9.code9.booksservice.dto.CartItemDto;
 
 import java.util.List;
 
@@ -25,5 +25,5 @@ public interface BookService {
 
     List<BookDto> filterByGenre(Long genreId);
 
-    List<BookDto> updateCopiesSold(List<BookCopiesSoldDto> copiesSold);
+    List<BookDto> updateCopiesSold(List<CartItemDto> itemsSold);
 }

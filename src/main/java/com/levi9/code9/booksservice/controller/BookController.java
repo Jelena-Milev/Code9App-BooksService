@@ -2,9 +2,9 @@ package com.levi9.code9.booksservice.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.levi9.code9.booksservice.dto.BookCopiesSoldDto;
 import com.levi9.code9.booksservice.dto.BookDto;
 import com.levi9.code9.booksservice.dto.BookSaveDto;
+import com.levi9.code9.booksservice.dto.CartItemDto;
 import com.levi9.code9.booksservice.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -97,8 +97,8 @@ public class BookController {
     }
 
     @PatchMapping(path = "/bulk", consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<BookDto>> updateBooksSold(@RequestBody final List<BookCopiesSoldDto> copiesSold) {
-        List<BookDto> updatedBooks = bookService.updateCopiesSold(copiesSold);
+    public ResponseEntity<List<BookDto>> updateBooksSold(@RequestBody final List<CartItemDto> cartItemsSold) {
+        List<BookDto> updatedBooks = bookService.updateCopiesSold(cartItemsSold);
         return new ResponseEntity<>(updatedBooks, HttpStatus.OK);
     }
 }

@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class BookCopiesSoldDto {
+public class CartItemDto {
     private Long bookId;
-    private Long copiesSold;
+    private Long quantity;
 }

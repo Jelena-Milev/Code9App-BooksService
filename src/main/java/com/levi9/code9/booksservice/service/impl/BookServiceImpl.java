@@ -1,8 +1,8 @@
 package com.levi9.code9.booksservice.service.impl;
 
-import com.levi9.code9.booksservice.dto.BookCopiesSoldDto;
 import com.levi9.code9.booksservice.dto.BookDto;
 import com.levi9.code9.booksservice.dto.BookSaveDto;
+import com.levi9.code9.booksservice.dto.CartItemDto;
 import com.levi9.code9.booksservice.mapper.BookMapper;
 import com.levi9.code9.booksservice.model.AuthorEntity;
 import com.levi9.code9.booksservice.model.BookEntity;
@@ -161,17 +161,17 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookDto> updateCopiesSold(List<BookCopiesSoldDto> copiesSold) {
-        List<BookEntity> updatedBooks = new ArrayList<>(copiesSold.size());
-        copiesSold.forEach(bookSold -> {
+    public List<BookDto> updateCopiesSold(List<CartItemDto> itemsSold) {
+        List<BookEntity> updatedBooks = new ArrayList<>(itemsSold.size());
+        for (CartItemDto bookSold : itemsSold) {
             final BookEntity book = bookRepository.findById(bookSold.getBookId()).get();
-            final Long updatedCopiesSoldNumber = book.getSoldCopiesNumber()+bookSold.getCopiesSold();
+            final Long updatedCopiesSoldNumber = book.getSoldCopiesNumber()+bookSold.getQuantity();
             book.setSoldCopiesNumber(updatedCopiesSoldNumber);
-            final Long updatedCopiesOnStock = book.getQuantityOnStock() - bookSold.getCopiesSold();
+            final Long updatedCopiesOnStock = book.getQuantityOnStock() - bookSold.getQuantity();
             book.setQuantityOnStock(updatedCopiesOnStock);
             final BookEntity savedBook = bookRepository.save(book);
             updatedBooks.add(savedBook);
-        });
+        }
         List<BookDto> updatedBooksDtos = new ArrayList<>(updatedBooks.size());
         updatedBooks.forEach(book -> updatedBooksDtos.add(bookMapper.mapToDto(book)));
         return updatedBooksDtos;
