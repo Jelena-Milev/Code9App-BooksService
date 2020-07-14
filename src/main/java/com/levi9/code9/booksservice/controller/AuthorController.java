@@ -34,16 +34,4 @@ public class AuthorController {
         AuthorDto savedAuthor = authorService.save(authorDto);
         return new ResponseEntity<>(savedAuthor, HttpStatus.OK);
     }
-
-    @PostMapping(path = "/all", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<AuthorDto>> saveAll(@RequestBody final List<AuthorDto> authorDtos){
-//        List<AuthorDto> savedAuthors = authorService.saveAll(authorDtos);
-//        return new ResponseEntity<>(savedAuthors, HttpStatus.OK);
-        List<AuthorDto> savedAuthors = new ArrayList<>(authorDtos.size());
-        for (AuthorDto authorDto : authorDtos) {
-            final AuthorDto savedAuthor = authorService.save(authorDto);
-            savedAuthors.add(savedAuthor);
-        }
-        return new ResponseEntity<>(savedAuthors, HttpStatus.OK);
-    }
 }

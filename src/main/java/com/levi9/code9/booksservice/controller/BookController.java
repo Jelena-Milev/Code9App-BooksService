@@ -50,10 +50,12 @@ public class BookController {
     @GetMapping(path = "/best-sellers", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<List<BookDto>> getBestSellers(@RequestParam(required = false) final Integer number) {
         List<BookDto> bookDtos;
-        if (number == null) {
-            bookDtos = bookService.getBestSellers(new Integer(10));
+        Integer numberOfBooks = number;
+        if (numberOfBooks == null) {
+            numberOfBooks = new Integer(10);
+//            bookDtos = bookService.getBestSellers(new Integer(10));
         }
-        bookDtos = bookService.getBestSellers(number);
+        bookDtos = bookService.getBestSellers(numberOfBooks);
         return new ResponseEntity<>(bookDtos, HttpStatus.OK);
     }
 

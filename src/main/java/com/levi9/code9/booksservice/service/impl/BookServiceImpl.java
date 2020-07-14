@@ -71,7 +71,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<BookDto> getBestSellers(Integer number) {
-        Pageable sortedByPiecesSold = PageRequest.of(0, number, Sort.by("soldCopiesNumber").descending());
+        Pageable sortedByPiecesSold = PageRequest.of(0, number.intValue(), Sort.by("soldCopiesNumber").descending());
         List<BookEntity> bestSellers = bookRepository.findAllByOnStockIsTrue(sortedByPiecesSold);
         List<BookDto> bestSellersDtos = new ArrayList<>(bestSellers.size());
         bestSellers.forEach(book -> bestSellersDtos.add(bookMapper.mapToDto(book)));
