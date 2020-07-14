@@ -12,6 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "Author")
 @Table(name="author")
 public class AuthorEntity {
@@ -20,25 +21,11 @@ public class AuthorEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "author_id_seq")
     @SequenceGenerator(name = "author_id_generator", sequenceName = "author_id_seq", initialValue = 1)
     private Long id;
+    @EqualsAndHashCode.Include
     private String firstName;
+    @EqualsAndHashCode.Include
     private String lastName;
 
     @Column(columnDefinition = "DATE")
     private LocalDate dateOfBirth;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || !(o instanceof AuthorEntity)) return false;
-        AuthorEntity that = (AuthorEntity) o;
-        return firstName.equals(that.firstName) &&
-                lastName.equals(that.lastName) &&
-                dateOfBirth.equals(that.dateOfBirth);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(firstName, lastName, dateOfBirth);
-    }
-
 }

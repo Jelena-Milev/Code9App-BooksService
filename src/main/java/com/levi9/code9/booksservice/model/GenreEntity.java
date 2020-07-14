@@ -15,28 +15,24 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "Genre")
 @Table(name = "genre")
 public class GenreEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @EqualsAndHashCode.Include
     private String name;
 
     public GenreEntity(String name) {
         this.name = name;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || !(o instanceof GenreEntity)) return false;
-        GenreEntity that = (GenreEntity) o;
-        return name.equals(that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
+    @OneToMany(
+            mappedBy = "genre",
+            orphanRemoval = true,
+            cascade = CascadeType.ALL
+    )
+    private List<BookGenre> books;
 }

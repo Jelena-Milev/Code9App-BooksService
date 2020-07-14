@@ -11,6 +11,7 @@ import java.util.*;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "Book")
 @Table(name = "book")
 public class BookEntity {
@@ -18,6 +19,7 @@ public class BookEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @EqualsAndHashCode.Include
     private String title;
     private BigDecimal price;
     private Long quantityOnStock;
@@ -29,48 +31,25 @@ public class BookEntity {
             CascadeType.PERSIST, CascadeType.MERGE
     })
     @JoinColumn(name = "author_id", referencedColumnName = "id")
+    @EqualsAndHashCode.Include
     private AuthorEntity author;
 
     @OneToMany(
             mappedBy = "book",
-            orphanRemoval = true
+            orphanRemoval = true,
+            cascade = CascadeType.ALL
     )
     private List<BookGenre> genres;
 
-    public void addBookGenre(BookGenre bookGenre) {
+    public void addBookGenre(GenreEntity genre) {
         if(genres == null){
             genres = new ArrayList<>();
         }
+        final BookGenre bookGenre = new BookGenre(this, genre);
         genres.add(bookGenre);
     }
 
-    public void removeGenre(GenreEntity genre) {
-        for (Iterator<BookGenre> iterator = genres.iterator();
-             iterator.hasNext(); ) {
-            BookGenre bookGenre = iterator.next();
-
-            if (bookGenre.getBook().equals(this) &&
-                    bookGenre.getGenre().equals(genre)) {
-                iterator.remove();
-            }
-        }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || !(o instanceof BookEntity)) return false;
-        BookEntity that = (BookEntity) o;
-        return onStock == that.onStock &&
-                title.equals(that.title) &&
-                price.equals(that.price) &&
-                quantityOnStock.equals(that.quantityOnStock) &&
-                soldCopiesNumber.equals(that.soldCopiesNumber) &&
-                author.equals(that.author);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(title, price, quantityOnStock, onStock, soldCopiesNumber, author);
+    public void removeGenres(List<BookGenre> genresToRemove) {
+        this.genres.removeAll(genresToRemove);
     }
 }

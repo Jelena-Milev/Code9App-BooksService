@@ -21,13 +21,11 @@ public class BookGenre implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {
-            CascadeType.PERSIST, CascadeType.MERGE
-    })
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "book_id", referencedColumnName = "id")
     private BookEntity book;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "genre_id", referencedColumnName = "id")
     private GenreEntity genre;
 
@@ -50,12 +48,4 @@ public class BookGenre implements Serializable {
         return Objects.hash(id, book, genre);
     }
 
-    @Override
-    public String toString() {
-        return "BookGenre{" +
-                "id=" + id +
-                ", book=" + book +
-                ", genre=" + genre +
-                '}';
-    }
 }
