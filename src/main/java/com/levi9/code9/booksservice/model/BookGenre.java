@@ -1,9 +1,6 @@
 package com.levi9.code9.booksservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -13,6 +10,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "BookGenre")
 @Table(name = "book_genre")
 public class BookGenre implements Serializable {
@@ -23,29 +21,16 @@ public class BookGenre implements Serializable {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "book_id", referencedColumnName = "id")
+    @EqualsAndHashCode.Include
     private BookEntity book;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "genre_id", referencedColumnName = "id")
+    @EqualsAndHashCode.Include
     private GenreEntity genre;
 
     public BookGenre(BookEntity book, GenreEntity genre) {
         this.book = book;
         this.genre = genre;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || !(o instanceof BookGenre)) return false;
-        BookGenre bookGenre = (BookGenre) o;
-        return  Objects.equals(book, bookGenre.book) &&
-                Objects.equals(genre, bookGenre.genre);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, book, genre);
-    }
-
 }
