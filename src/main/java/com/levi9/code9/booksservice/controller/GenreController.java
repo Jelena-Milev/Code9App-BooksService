@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -30,7 +31,7 @@ public class GenreController {
     }
 
     @PostMapping(path = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GenreDto> save(@RequestBody final GenreDto genreDto){
+    public ResponseEntity<GenreDto> save(@RequestBody final @Valid GenreDto genreDto){
         final GenreDto savedGenre = genreService.save(genreDto);
         return new ResponseEntity<>(savedGenre, HttpStatus.OK);
     }

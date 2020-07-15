@@ -5,11 +5,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Builder
 public class GenreDto {
     private Long id;
+
+    @NotBlank(message = "Genre name must not be blank")
     private String name;
 }
