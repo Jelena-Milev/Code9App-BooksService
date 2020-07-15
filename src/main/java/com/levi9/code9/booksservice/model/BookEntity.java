@@ -41,7 +41,7 @@ public class BookEntity {
     )
     private List<BookGenre> genres;
 
-    public void addBookGenre(GenreEntity genre) {
+    public void addGenre(GenreEntity genre) {
         if(genres == null){
             genres = new ArrayList<>();
         }

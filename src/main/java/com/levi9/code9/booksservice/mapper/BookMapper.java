@@ -8,6 +8,8 @@ import com.levi9.code9.booksservice.model.BookGenre;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface BookMapper {
 
@@ -17,5 +19,7 @@ public interface BookMapper {
     @Mapping(source = "bookGenre.genre.id", target = "id")
     @Mapping(source = "bookGenre.genre.name", target = "name")
     GenreDto bookGenreToGenreDto(BookGenre bookGenre);
+
+    List<BookDto> mapToDtoList(List<BookEntity> books);
 
 }

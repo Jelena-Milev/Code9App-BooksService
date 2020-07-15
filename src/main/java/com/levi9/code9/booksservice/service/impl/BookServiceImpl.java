@@ -47,48 +47,35 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookDto save(BookSaveDto bookDtoToSave) {
-        final BookEntity bookEntityToSave = bookMapper.map(bookDtoToSave);
-        final BookEntity bookEntity = setAuthor(bookEntityToSave, bookDtoToSave.getAuthorId());
+        final AuthorEntity author = findAuthorById(bookDtoToSave.getAuthorId());
 
-        final Optional<BookEntity> book = bookRepository.findByTitleAndAuthor(bookEntity.getTitle(), bookEntity.getAuthor());
-        if(book.isPresent()){
+        final Optional<BookEntity> optionalBook = bookRepository.findByTitleAndAuthor(bookDtoToSave.getTitle(), author);
+        if(optionalBook.isPresent()){
             throw new ObjectAlreadyExistsException("Book");
         }
+
+        final BookEntity bookToSave = bookMapper.map(bookDtoToSave);
+        bookToSave.setAuthor(author);
+
         for (Long genreId : bookDtoToSave.getGenresIds()) {
-            setGenre(bookEntity, genreId);
+            final GenreEntity genre = findGenreById(genreId);
+            bookToSave.addGenre(genre);
         }
-        final BookEntity savedBook = bookRepository.save(bookEntity);
+        final BookEntity savedBook = bookRepository.save(bookToSave);
         return bookMapper.mapToDto(savedBook);
-    }
-
-    private void setGenre(BookEntity book, Long genreId){
-        Optional<GenreEntity> genre = genreRepository.findById(genreId);
-        genre.orElseThrow(() -> new ObjectNotFoundException("Genre", genreId));
-        book.addBookGenre(genre.get());
-    }
-
-    private BookEntity setAuthor(BookEntity book, Long authorId) {
-        Optional<AuthorEntity> authorEntity = authorRepository.findById(authorId);
-        authorEntity.orElseThrow(() -> new ObjectNotFoundException("Author", authorId));
-        book.setAuthor(authorEntity.get());
-        return book;
     }
 
     @Override
     public List<BookDto> getAll() {
         List<BookEntity> books = bookRepository.findAllByOnStockIsTrue();
-        List<BookDto> bookDtos = new ArrayList<>(books.size());
-        books.forEach(book -> bookDtos.add(bookMapper.mapToDto(book)));
-        return bookDtos;
+        return bookMapper.mapToDtoList(books);
     }
 
     @Override
     public List<BookDto> getBestSellers(Integer number) {
         Pageable sortedByPiecesSold = PageRequest.of(0, number.intValue(), Sort.by("soldCopiesNumber").descending());
         List<BookEntity> bestSellers = bookRepository.findAllByOnStockIsTrue(sortedByPiecesSold);
-        List<BookDto> bestSellersDtos = new ArrayList<>(bestSellers.size());
-        bestSellers.forEach(book -> bestSellersDtos.add(bookMapper.mapToDto(book)));
-        return bestSellersDtos;
+        return bookMapper.mapToDtoList(bestSellers);
     }
 
     @Override
@@ -110,54 +97,29 @@ public class BookServiceImpl implements BookService {
             }
             filteredBooks.addAll(books);
         }
-        List<BookDto> bookDtos = new ArrayList<>(filteredBooks.size());
-        filteredBooks.forEach(book -> bookDtos.add(bookMapper.mapToDto(book)));
-        return bookDtos;
+        return bookMapper.mapToDtoList(filteredBooks);
     }
 
     @Override
-    //TODO: if book is already deleted, throw an error
     public BookDto delete(Long id) {
-        Optional<BookEntity> book = bookRepository.findById(id);
-        book.orElseThrow(() -> new ObjectNotFoundException("Book", id));
-        final BookEntity bookToDelete = book.get();
+        final BookEntity bookToDelete = findBookById(id);
         bookToDelete.setOnStock(false);
         final BookEntity deletedBook = bookRepository.save(bookToDelete);
         return bookMapper.mapToDto(deletedBook);
     }
 
     @Override
-    public BookDto update(Long id, BookSaveDto newBook) {
-        Optional<BookEntity> book = bookRepository.findById(id);
-        book.orElseThrow(() -> new ObjectNotFoundException("Book", id));
+    public BookDto update(Long bookToUpdateId, BookSaveDto newBook) {
+        final BookEntity bookToUpdate = findBookById(bookToUpdateId);
+        final AuthorEntity author = findAuthorById(newBook.getAuthorId());
+        bookToUpdate.setAuthor(author);
 
-        final BookEntity bookToUpdate = book.get();
-        final BookEntity bookWithUpdatedAuthor = setAuthor(bookToUpdate, newBook.getAuthorId());
-//        AuthorEntity newAuthor = authorRepository.findById(newBook.getAuthorId()).get();
-//        bookToUpdate.setAuthor(newAuthor);
-
-        bookWithUpdatedAuthor.setTitle(newBook.getTitle());
-        bookWithUpdatedAuthor.setPrice(newBook.getPrice());
-        bookWithUpdatedAuthor.setQuantityOnStock(newBook.getQuantityOnStock());
+        bookToUpdate.setTitle(newBook.getTitle());
+        bookToUpdate.setPrice(newBook.getPrice());
+        bookToUpdate.setQuantityOnStock(newBook.getQuantityOnStock());
 
         List<Long> newGenresIds = newBook.getGenresIds();
-        updateGenres(bookWithUpdatedAuthor, newGenresIds);
-//        List<Long> newGenresIds = newBook.getGenresIds();
-//        List<BookGenre> genresToRemove = new ArrayList<>();
-//        for (BookGenre bookGenre : bookToUpdate.getGenres()) {
-//            final Long genreId = bookGenre.getGenre().getId();
-//            if(!newGenresIds.contains(genreId)){
-//                genresToRemove.add(bookGenre);
-//            }
-//        }
-//        bookToUpdate.removeGenres(genresToRemove);
-//        for (Long newGenreId : newGenresIds) {
-//            final GenreEntity newGenre = genreRepository.findById(newGenreId).get();
-//            final BookGenre newBookGenre = new BookGenre(bookToUpdate, newGenre);
-//            if(!bookToUpdate.getGenres().contains(newBookGenre)){
-//                bookToUpdate.addBookGenre(newGenre);
-//            }
-//        }
+        updateGenres(bookToUpdate, newGenresIds);
 
         BookEntity updatedBook = bookRepository.save(bookToUpdate);
         return bookMapper.mapToDto(updatedBook);
@@ -173,48 +135,62 @@ public class BookServiceImpl implements BookService {
         }
         bookToUpdate.removeGenres(genresToRemove);
         for (Long newGenreId : newGenresIds) {
-            final Optional<GenreEntity> newGenreOptional = genreRepository.findById(newGenreId);
-            newGenreOptional.orElseThrow(() -> new ObjectNotFoundException("Genre", newGenreId));
-
-            final GenreEntity newGenre = newGenreOptional.get();
-//            final BookGenre newBookGenre = new BookGenre(bookToUpdate, newGenre);
+            final GenreEntity newGenre = findGenreById(newGenreId);
             if(!bookToUpdate.containsGenre(newGenre)){
-                bookToUpdate.addBookGenre(newGenre);
+                bookToUpdate.addGenre(newGenre);
             }
         }
     }
+
     @Override
     public BookDto getById(Long id) {
-        Optional<BookEntity> book = bookRepository.findById(id);
-        book.orElseThrow(() -> new ObjectNotFoundException("Book", id));
-        return bookMapper.mapToDto(book.get());
+        final BookEntity book = findBookById(id);
+        return bookMapper.mapToDto(book);
     }
 
     @Override
     public List<BookDto> filterByGenre(Long genreId) {
-        GenreEntity genre = genreRepository.findById(genreId).get();
+        final GenreEntity genre = findGenreById(genreId);
         final List<BookGenre> bookGenres = bookGenreRepository.findByGenreAndBookOnStockIsTrue(genre);
-        List<BookEntity> books = new ArrayList<>(bookGenres.size());
+        final List<BookEntity> books = new ArrayList<>(bookGenres.size());
         bookGenres.forEach(bookGenre -> books.add(bookGenre.getBook()));
-        List<BookDto> bookDtos = new ArrayList<>(books.size());
-        books.forEach(book -> bookDtos.add(bookMapper.mapToDto(book)));
-        return bookDtos;
+        return bookMapper.mapToDtoList(books);
     }
 
     @Override
     public List<BookDto> updateCopiesSold(List<CartItemDto> itemsSold) {
         List<BookEntity> updatedBooks = new ArrayList<>(itemsSold.size());
-        for (CartItemDto bookSold : itemsSold) {
-            final BookEntity book = bookRepository.findById(bookSold.getBookId()).get();
-            final Long updatedCopiesSoldNumber = book.getSoldCopiesNumber()+bookSold.getQuantity();
+        for (CartItemDto bookSoldDto : itemsSold) {
+            final BookEntity book = findBookById(bookSoldDto.getBookId());
+
+            final Long updatedCopiesSoldNumber = book.getSoldCopiesNumber()+bookSoldDto.getQuantity();
             book.setSoldCopiesNumber(updatedCopiesSoldNumber);
-            final Long updatedCopiesOnStock = book.getQuantityOnStock() - bookSold.getQuantity();
+
+            final Long updatedCopiesOnStock = book.getQuantityOnStock() - bookSoldDto.getQuantity();
             book.setQuantityOnStock(updatedCopiesOnStock);
-            final BookEntity savedBook = bookRepository.save(book);
-            updatedBooks.add(savedBook);
+
+            final BookEntity updatedBook = bookRepository.save(book);
+            updatedBooks.add(updatedBook);
         }
-        List<BookDto> updatedBooksDtos = new ArrayList<>(updatedBooks.size());
-        updatedBooks.forEach(book -> updatedBooksDtos.add(bookMapper.mapToDto(book)));
-        return updatedBooksDtos;
+        return bookMapper.mapToDtoList(updatedBooks);
+    }
+
+
+    private BookEntity findBookById(Long bookId){
+        final Optional<BookEntity> optionalBookEntity = bookRepository.findById(bookId);
+        optionalBookEntity.orElseThrow(() -> new ObjectNotFoundException("Book", bookId));
+        return optionalBookEntity.get();
+    }
+
+    private AuthorEntity findAuthorById(Long authorId){
+        Optional<AuthorEntity> optionalAuthorEntity = authorRepository.findById(authorId);
+        optionalAuthorEntity.orElseThrow(() -> new ObjectNotFoundException("Author", authorId));
+        return optionalAuthorEntity.get();
+    }
+
+    private GenreEntity findGenreById(Long genreId){
+        Optional<GenreEntity> optionalGenreEntity = genreRepository.findById(genreId);
+        optionalGenreEntity.orElseThrow(() -> new ObjectNotFoundException("Genre", genreId));
+        return optionalGenreEntity.get();
     }
 }
