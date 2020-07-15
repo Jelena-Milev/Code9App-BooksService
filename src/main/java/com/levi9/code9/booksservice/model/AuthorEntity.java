@@ -4,6 +4,8 @@ import lombok.*;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Past;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Set;
@@ -21,8 +23,10 @@ public class AuthorEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "author_id_seq")
     @SequenceGenerator(name = "author_id_generator", sequenceName = "author_id_seq", initialValue = 1)
     private Long id;
+
     @EqualsAndHashCode.Include
     private String firstName;
+
     @EqualsAndHashCode.Include
     private String lastName;
 

@@ -9,6 +9,5 @@ import java.util.List;
 public interface AuthorService {
 
     AuthorDto save(AuthorDto authorDto);
-    List<AuthorDto> saveAll(List<AuthorDto> authorDtos);
     List<AuthorDto> getAll();
 }

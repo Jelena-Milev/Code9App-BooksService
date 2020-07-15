@@ -1,6 +1,7 @@
 package com.levi9.code9.booksservice.service.impl;
 
 import com.levi9.code9.booksservice.dto.AuthorDto;
+import com.levi9.code9.booksservice.exception.ObjectAlreadyExistsException;
 import com.levi9.code9.booksservice.mapper.AuthorMapper;
 import com.levi9.code9.booksservice.model.AuthorEntity;
 import com.levi9.code9.booksservice.repository.AuthorRepository;
@@ -9,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class AuthorServiceImpl implements AuthorService {
@@ -28,30 +26,14 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public AuthorDto save(AuthorDto authorDto) {
+        final Optional<AuthorEntity> author = authorRepository.findByFirstNameAndLastName(authorDto.getFirstName().trim(), authorDto.getLastName().trim());
+        if(author.isPresent()){
+            throw new ObjectAlreadyExistsException("Author");
+        }
         final AuthorEntity authorToSave = authorMapper.map(authorDto);
         final AuthorEntity savedAuthor = authorRepository.save(authorToSave);
         final AuthorDto savedAuthorDto = authorMapper.mapToDto(savedAuthor);
         return savedAuthorDto;
-    }
-
-    @Override
-    public List<AuthorDto> saveAll(List<AuthorDto> authorDtos) {
-        List<AuthorEntity> authorEntities = new ArrayList<>();
-        for (AuthorDto authorDto : authorDtos) {
-            AuthorEntity author = authorMapper.map(authorDto);
-            authorEntities.add(author);
-        }
-        List<AuthorDto> savedAuthorsDto = new ArrayList<>(authorEntities.size());
-
-        for (AuthorEntity authorEntity : authorEntities) {
-            AuthorEntity savedAuthor = authorRepository.save(authorEntity);
-            savedAuthorsDto.add(authorMapper.mapToDto(savedAuthor));
-        }
-//        List<AuthorEntity> savedAuthors = authorRepository.saveAll(authorEntities);
-//        for (AuthorEntity savedAuthor : savedAuthors) {
-//
-//        }
-        return savedAuthorsDto;
     }
 
     @Override

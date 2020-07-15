@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class AuthorController {
     }
 
     @PostMapping(path = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<AuthorDto> save(@RequestBody final AuthorDto authorDto){
+    public ResponseEntity<AuthorDto> save(@RequestBody @Valid final AuthorDto authorDto){
         AuthorDto savedAuthor = authorService.save(authorDto);
         return new ResponseEntity<>(savedAuthor, HttpStatus.OK);
     }
