@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BookRepository extends JpaRepository<BookEntity, Long> {
 
@@ -18,4 +19,6 @@ public interface BookRepository extends JpaRepository<BookEntity, Long> {
     List<BookEntity> findByAuthorAndOnStockIsTrue(AuthorEntity author);
 
     List<BookEntity> findByAuthorAndTitleStartingWithAndOnStockIsTrue(AuthorEntity author, String title);
+
+    Optional<BookEntity> findByTitleAndAuthor(String title, AuthorEntity author);
 }

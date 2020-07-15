@@ -21,7 +21,7 @@ public class AuthorEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "author_id_seq")
-    @SequenceGenerator(name = "author_id_generator", sequenceName = "author_id_seq", initialValue = 1)
+    @SequenceGenerator(name = "author_id_generator", sequenceName = "author_id_seq", initialValue = 1, allocationSize = 1)
     private Long id;
 
     @EqualsAndHashCode.Include

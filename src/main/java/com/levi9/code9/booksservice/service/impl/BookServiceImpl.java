@@ -3,6 +3,8 @@ package com.levi9.code9.booksservice.service.impl;
 import com.levi9.code9.booksservice.dto.BookDto;
 import com.levi9.code9.booksservice.dto.BookSaveDto;
 import com.levi9.code9.booksservice.dto.CartItemDto;
+import com.levi9.code9.booksservice.exception.ObjectAlreadyExistsException;
+import com.levi9.code9.booksservice.exception.ObjectNotFoundException;
 import com.levi9.code9.booksservice.mapper.BookMapper;
 import com.levi9.code9.booksservice.model.AuthorEntity;
 import com.levi9.code9.booksservice.model.BookEntity;
@@ -47,17 +49,28 @@ public class BookServiceImpl implements BookService {
     public BookDto save(BookSaveDto bookDtoToSave) {
         final BookEntity bookEntityToSave = bookMapper.map(bookDtoToSave);
         final BookEntity bookEntity = setAuthor(bookEntityToSave, bookDtoToSave.getAuthorId());
+
+        final Optional<BookEntity> book = bookRepository.findByTitleAndAuthor(bookEntity.getTitle(), bookEntity.getAuthor());
+        if(book.isPresent()){
+            throw new ObjectAlreadyExistsException("Book");
+        }
         for (Long genreId : bookDtoToSave.getGenresIds()) {
-            GenreEntity genre = genreRepository.findById(genreId).get();
-            bookEntity.addBookGenre(genre);
+            setGenre(bookEntity, genreId);
         }
         final BookEntity savedBook = bookRepository.save(bookEntity);
         return bookMapper.mapToDto(savedBook);
     }
 
+    private void setGenre(BookEntity book, Long genreId){
+        Optional<GenreEntity> genre = genreRepository.findById(genreId);
+        genre.orElseThrow(() -> new ObjectNotFoundException("Genre", genreId));
+        book.addBookGenre(genre.get());
+    }
+
     private BookEntity setAuthor(BookEntity book, Long authorId) {
-        AuthorEntity authorEntity = authorRepository.findById(authorId).get();
-        book.setAuthor(authorEntity);
+        Optional<AuthorEntity> authorEntity = authorRepository.findById(authorId);
+        authorEntity.orElseThrow(() -> new ObjectNotFoundException("Author", authorId));
+        book.setAuthor(authorEntity.get());
         return book;
     }
 
@@ -105,24 +118,52 @@ public class BookServiceImpl implements BookService {
     @Override
     //TODO: if book is already deleted, throw an error
     public BookDto delete(Long id) {
-        BookEntity bookToDelete = bookRepository.findById(id).get();
+        Optional<BookEntity> book = bookRepository.findById(id);
+        book.orElseThrow(() -> new ObjectNotFoundException("Book", id));
+        final BookEntity bookToDelete = book.get();
         bookToDelete.setOnStock(false);
-        BookEntity deletedBook = bookRepository.save(bookToDelete);
+        final BookEntity deletedBook = bookRepository.save(bookToDelete);
         return bookMapper.mapToDto(deletedBook);
     }
 
     @Override
     public BookDto update(Long id, BookSaveDto newBook) {
-        BookEntity bookToUpdate = bookRepository.findById(id).get();
+        Optional<BookEntity> book = bookRepository.findById(id);
+        book.orElseThrow(() -> new ObjectNotFoundException("Book", id));
 
-        AuthorEntity newAuthor = authorRepository.findById(newBook.getAuthorId()).get();
-        bookToUpdate.setAuthor(newAuthor);
+        final BookEntity bookToUpdate = book.get();
+        final BookEntity bookWithUpdatedAuthor = setAuthor(bookToUpdate, newBook.getAuthorId());
+//        AuthorEntity newAuthor = authorRepository.findById(newBook.getAuthorId()).get();
+//        bookToUpdate.setAuthor(newAuthor);
 
-        bookToUpdate.setTitle(newBook.getTitle());
-        bookToUpdate.setPrice(newBook.getPrice());
-        bookToUpdate.setQuantityOnStock(newBook.getQuantityOnStock());
+        bookWithUpdatedAuthor.setTitle(newBook.getTitle());
+        bookWithUpdatedAuthor.setPrice(newBook.getPrice());
+        bookWithUpdatedAuthor.setQuantityOnStock(newBook.getQuantityOnStock());
 
         List<Long> newGenresIds = newBook.getGenresIds();
+        updateGenres(bookWithUpdatedAuthor, newGenresIds);
+//        List<Long> newGenresIds = newBook.getGenresIds();
+//        List<BookGenre> genresToRemove = new ArrayList<>();
+//        for (BookGenre bookGenre : bookToUpdate.getGenres()) {
+//            final Long genreId = bookGenre.getGenre().getId();
+//            if(!newGenresIds.contains(genreId)){
+//                genresToRemove.add(bookGenre);
+//            }
+//        }
+//        bookToUpdate.removeGenres(genresToRemove);
+//        for (Long newGenreId : newGenresIds) {
+//            final GenreEntity newGenre = genreRepository.findById(newGenreId).get();
+//            final BookGenre newBookGenre = new BookGenre(bookToUpdate, newGenre);
+//            if(!bookToUpdate.getGenres().contains(newBookGenre)){
+//                bookToUpdate.addBookGenre(newGenre);
+//            }
+//        }
+
+        BookEntity updatedBook = bookRepository.save(bookToUpdate);
+        return bookMapper.mapToDto(updatedBook);
+    }
+
+    private void updateGenres(BookEntity bookToUpdate, List<Long> newGenresIds){
         List<BookGenre> genresToRemove = new ArrayList<>();
         for (BookGenre bookGenre : bookToUpdate.getGenres()) {
             final Long genreId = bookGenre.getGenre().getId();
@@ -132,21 +173,21 @@ public class BookServiceImpl implements BookService {
         }
         bookToUpdate.removeGenres(genresToRemove);
         for (Long newGenreId : newGenresIds) {
-            final GenreEntity newGenre = genreRepository.findById(newGenreId).get();
-            final BookGenre newBookGenre = new BookGenre(bookToUpdate, newGenre);
-            if(!bookToUpdate.getGenres().contains(newBookGenre)){
+            final Optional<GenreEntity> newGenreOptional = genreRepository.findById(newGenreId);
+            newGenreOptional.orElseThrow(() -> new ObjectNotFoundException("Genre", newGenreId));
+
+            final GenreEntity newGenre = newGenreOptional.get();
+//            final BookGenre newBookGenre = new BookGenre(bookToUpdate, newGenre);
+            if(!bookToUpdate.containsGenre(newGenre)){
                 bookToUpdate.addBookGenre(newGenre);
             }
         }
-
-        BookEntity updatedBook = bookRepository.save(bookToUpdate);
-        return bookMapper.mapToDto(updatedBook);
     }
-
     @Override
     public BookDto getById(Long id) {
-        final BookEntity book = bookRepository.findById(id).get();
-        return bookMapper.mapToDto(book);
+        Optional<BookEntity> book = bookRepository.findById(id);
+        book.orElseThrow(() -> new ObjectNotFoundException("Book", id));
+        return bookMapper.mapToDto(book.get());
     }
 
     @Override

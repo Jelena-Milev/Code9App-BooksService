@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,9 +80,9 @@ public class BookController {
     }
 
     @PostMapping(path = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookDto> save(@RequestBody final BookSaveDto bookToSaveDto) {
+    public ResponseEntity<BookDto> save(@RequestBody final @Valid BookSaveDto bookToSaveDto) {
         BookDto savedBook = bookService.save(bookToSaveDto);
-        return new ResponseEntity<>(savedBook, HttpStatus.OK);
+        return new ResponseEntity<>(savedBook, HttpStatus.CREATED);
     }
 
     @DeleteMapping(path = "/{id}")
@@ -91,7 +92,7 @@ public class BookController {
     }
 
     @PutMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookDto> update(@RequestBody final BookSaveDto bookToSaveDto, @PathVariable final Long id) {
+    public ResponseEntity<BookDto> update(@RequestBody final @Valid BookSaveDto bookToSaveDto, @PathVariable final Long id) {
         BookDto updatedBook = bookService.update(id, bookToSaveDto);
         return new ResponseEntity<>(updatedBook, HttpStatus.OK);
     }

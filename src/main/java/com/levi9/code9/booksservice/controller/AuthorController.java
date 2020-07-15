@@ -33,6 +33,6 @@ public class AuthorController {
     @PostMapping(path = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthorDto> save(@RequestBody @Valid final AuthorDto authorDto){
         AuthorDto savedAuthor = authorService.save(authorDto);
-        return new ResponseEntity<>(savedAuthor, HttpStatus.OK);
+        return new ResponseEntity<>(savedAuthor, HttpStatus.CREATED);
     }
 }

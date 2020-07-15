@@ -49,6 +49,10 @@ public class BookEntity {
         genres.add(bookGenre);
     }
 
+    public boolean containsGenre(GenreEntity genre){
+        return genres.stream().anyMatch(bookGenre -> bookGenre.getGenre().equals(genre));
+    }
+
     public void removeGenres(List<BookGenre> genresToRemove) {
         this.genres.removeAll(genresToRemove);
     }

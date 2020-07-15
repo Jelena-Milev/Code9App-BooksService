@@ -33,6 +33,6 @@ public class GenreController {
     @PostMapping(path = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GenreDto> save(@RequestBody final @Valid GenreDto genreDto){
         final GenreDto savedGenre = genreService.save(genreDto);
-        return new ResponseEntity<>(savedGenre, HttpStatus.OK);
+        return new ResponseEntity<>(savedGenre, HttpStatus.CREATED);
     }
 }
