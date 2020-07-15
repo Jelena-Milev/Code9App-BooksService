@@ -110,8 +110,13 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDto update(Long bookToUpdateId, BookSaveDto newBook) {
-        final BookEntity bookToUpdate = findBookById(bookToUpdateId);
         final AuthorEntity author = findAuthorById(newBook.getAuthorId());
+        final Optional<BookEntity> optionalBook = bookRepository.findByTitleAndAuthor(newBook.getTitle(), author);
+
+        if(optionalBook.isPresent()){
+            throw new ObjectAlreadyExistsException("Book");
+        }
+        final BookEntity bookToUpdate = findBookById(bookToUpdateId);
         bookToUpdate.setAuthor(author);
 
         bookToUpdate.setTitle(newBook.getTitle());
